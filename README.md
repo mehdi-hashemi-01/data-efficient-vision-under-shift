@@ -61,6 +61,57 @@ Dataset source and class definitions: [CIFAR-10, University of Toronto](https://
 
 Run `baseline_20261119_220732_930634`. Adding noise reduced macro-F1 by 64.01 percentage points and accuracy by 56.64 points. These figures come from script 02. The corresponding fit in script 03 used the same selected IDs and produced slightly different scores.
 
+### Reproducibility check
+
+The ResNet18 random-sampling run at 20% labels (8,000 training IDs, seed 11) was replayed on the same RTX 5070 Laptop GPU. The archived ID file matched its SHA-256 digest. Both fits used ImageNet-1K V1 weights and took 1,103 L-BFGS iterations.
+
+| Evaluation | Metric | Original | Replay |
+|---|---|---:|---:|
+| Clean | Accuracy | 0.807625 | 0.807625 |
+| Clean | Macro-F1 | 0.807645 | 0.807645 |
+| Gaussian noise | Accuracy | 0.187125 | 0.187125 |
+| Gaussian noise | Macro-F1 | 0.123015 | 0.123015 |
+
+Across all 12 classification, calibration and OOD metrics, nine differences were exactly zero and the largest absolute difference was 8.33 × 10⁻¹⁷. This verifies aggregate-score repeatability for this configuration on the recorded setup. Original run: `comparison_20261119_225145_293414`. Replay: `replay_resnet18_20261120_014546_964948`. Run `04.reproduce_resnet18_baseline.py` in PyCharm to generate `comparison.csv` and `replay_details.json`.
+
+### Image pipeline audit
+
+Run `pipeline_20261120_015510_030291` checked all 8,000 unique known-class test images (1,000 per class). With noise amplitude set to zero, the audit path reproduced both the clean RGB values and the normalized ResNet18 input tensors exactly. At σ = 0.12, the audit reconstruction matched the project noise function on every RGB value.
+
+| Measurement at σ = 0.12 | Result |
+|---|---:|
+| Mean absolute change per RGB channel value, 0–1 scale | 0.09108 |
+| Equivalent mean change on the 0–255 scale | 23.23 |
+| Channel values outside [0, 1] before clipping | 1,545,225 / 24,576,000 (6.29%) |
+
+The preview pairs clean and noisy views before and after preprocessing for one image per class. These checks verify the implemented perturbation. Attributing the observed macro-F1 drop to specific classes requires paired per-image predictions.
+
+### Paired image predictions
+
+Export `image_predictions_20261120_021017_526692` contains the same 8,000 labeled test IDs in each of four configurations (seed 11, 20% labels). All 16 accuracy and macro-F1 checks matched the archived benchmark to within 1e-8. The transition counts below compare each image with its own corrupted view.
+
+| Encoder | Policy | Clean macro-F1 | Noisy macro-F1 | Correct to wrong | Wrong to correct |
+|---|---|---:|---:|---:|---:|
+| ResNet18 | Random | 0.8076 | 0.1230 | 5,303 | 339 |
+| ResNet18 | Entropy | 0.8395 | 0.0898 | 5,812 | 283 |
+| MobileNetV3-Small | Random | 0.8482 | 0.2323 | 4,765 | 215 |
+| MobileNetV3-Small | Entropy | 0.8744 | 0.2666 | 4,734 | 192 |
+
+With entropy acquisition, ResNet18 predicted cat or bird for 7,473 of 8,000 noisy images (93.41%), although those two classes accounted for 2,000 images (25%). For example, it labeled 656 of the 1,000 noisy dog images as cats. These counts describe one seed and corruption level.
+
+### Class-level error audit
+
+Run `prediction_errors_20261120_022343_139274` covers seed 11 at the 20% budget. All eight clean/noisy confusion matrices were reconstructed from the image-level export. Automobile had the largest clean-to-noisy class F1 drop in each configuration.
+
+| Encoder | Policy | Clean automobile F1 | Noisy automobile F1 | Correct out of 1,000 noisy cars | Most frequent wrong label (count) |
+|---|---|---:|---:|---:|---|
+| ResNet18 | Random | 0.9648 | 0.0714 | 37 | Deer (334) |
+| ResNet18 | Entropy | 0.9714 | 0.0620 | 32 | Bird (497) |
+| MobileNetV3-Small | Random | 0.9723 | 0.0768 | 40 | Frog (530) |
+| MobileNetV3-Small | Entropy | 0.9733 | 0.1043 | 55 | Frog (501) |
+
+For ResNet18 with entropy sampling, automobile contributed 11.37 percentage points to the total 74.97-point macro-F1 drop (class F1 drop divided by eight). These class-level counts are specific to one seed and one noise level.
+
 ### Model and budget comparison
 
 Both acquisition policies start with the same randomly selected 5% for a given seed. At the next budget, **Random** continues along a fixed random ordering. **Entropy** ranks the remaining images by uncertainty under the previous classifier, reveals labels for the highest-ranked images and refits the head. At 100%, both policies have access to the entire pool. The intermediate 10% and 20% budgets reveal where the acquisition policy makes a difference.
@@ -76,16 +127,16 @@ Values at 20% labels are means ± sample standard deviations across seeds 11, 22
 
 #### Effect of entropy selection
 
-Mean paired macro-F1 difference (Entropy minus Random), in percentage points. Positive values favor Entropy.
+For each encoder, budget and test condition, we subtracted Random macro-F1 from Entropy macro-F1 within each seed. Values are mean differences in percentage points ± sample standard deviation. Wins count seeds where Entropy scored higher.
 
-| Encoder | Labels | Clean | Gaussian noise |
-|---|---:|---:|---:|
-| ResNet18 | 10% | +1.24 | -2.74 |
-| ResNet18 | 20% | +2.77 | -1.55 |
-| MobileNetV3-Small | 10% | +0.76 | +0.50 |
-| MobileNetV3-Small | 20% | +2.07 | +1.93 |
+| Encoder | Labels | Clean | Clean wins | Gaussian noise | Noise wins |
+|---|---:|---:|---:|---:|---:|
+| ResNet18 | 10% | +1.24 ± 0.24 | 5/5 | −2.74 ± 1.88 | 0/5 |
+| ResNet18 | 20% | +2.77 ± 0.33 | 5/5 | −1.55 ± 2.45 | 1/5 |
+| MobileNetV3-Small | 10% | +0.76 ± 0.33 | 5/5 | +0.50 ± 4.62 | 3/5 |
+| MobileNetV3-Small | 20% | +2.07 ± 0.59 | 5/5 | +1.93 ± 1.28 | 5/5 |
 
-The two encoders respond differently under this corruption. At 20%, entropy selection improves clean macro-F1 for both. On noisy images it improves MobileNetV3-Small and reduces ResNet18 macro-F1. Per-image predictions are needed to identify which classes account for the gap.
+Run `paired_results_20261120_022844_500509` reproduces all 40 differences from `comparison_20261119_225145_293414/metrics.csv`. For MobileNetV3-Small at 10% under noise, differences ranged from −5.40 to +7.51 points across seeds. The seeds vary training selection on one fixed test set and one noise setting.
 
 <details>
 <summary><b>How to read the comparison CSV</b></summary>
@@ -115,6 +166,7 @@ Right-click the desired file in the Project panel and choose **Run**. Experiment
 | 01.explore_cifar10.py | Inspect the dataset and display one example per class | cifar10_examples.png and class counts |
 | 02.run_first_baseline.py | Run the first clean/noisy comparison | results/baseline_&lt;timestamp&gt;/baseline_scores.csv and selected_train_ids.npy |
 | 03.compare_models_and_budgets.py | Compare two encoders, two selection policies and four budgets | results/comparison_&lt;timestamp&gt;/metrics.csv, training-ID files and environment.json |
+| 08.summarize_paired_results.py | Compare Entropy and Random within each seed using the saved comparison CSV | paired_by_seed.csv, paired_summary.csv and paired_differences.png |
 
 Script 02 loads the dataset itself, so it can run directly. For a controlled second run, change only `LABEL_PERCENT` from 5 to 10 while keeping `MODEL_NAME` and `SEED` fixed. Output folders are timestamped.
 
@@ -142,7 +194,7 @@ Script 02 loads the dataset itself, so it can run directly. For a controlled sec
 
 - [x] Record the two rows from the first baseline and their run identifier.
 - [x] Compare random and entropy selection at 10% and 20% using paired seed-level differences.
-- [ ] Add clean/noisy error examples and per-class changes from saved predictions.
+- [x] Record paired confusion matrices, per-class F1 changes and error example IDs for seed 11 at 20% labels.
 - [ ] Compare frozen supervised features against a matched self-supervised encoder under the same annotation budget.
 - [ ] Test whether agreement across two mild image transformations helps select useful uncertain examples. Include diversity-only and uncertainty-plus-diversity controls such as BADGE.
 - [ ] Evaluate additional corruptions and an external OOD dataset.

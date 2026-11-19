@@ -1,0 +1,9 @@
+true_class,airplane,automobile,bird,cat,deer,dog,frog,horse
+airplane,915,12,28,9,20,3,4,9
+automobile,26,965,2,2,0,2,2,1
+bird,32,1,796,38,50,24,44,15
+cat,10,4,40,723,32,139,40,12
+deer,11,0,36,26,853,21,17,36
+dog,5,1,22,134,23,773,13,29
+frog,7,1,28,33,25,8,891,7
+horse,15,1,11,17,48,35,3,870

@@ -1,0 +1,43 @@
+{
+  "source_run": "comparison_20261119_225145_293414",
+  "model": "resnet18",
+  "weights": "IMAGENET1K_V1",
+  "policy": "Random",
+  "seed": 11,
+  "budget": 20,
+  "n": 8000,
+  "ids_sha256": "1a75dbbaa69f2780908da1674de96be2822bd347b4959ebe1a41cce27c0c70bd",
+  "batch_size": 32,
+  "solver": "lbfgs",
+  "max_iter": 3000,
+  "original_iterations": 1103,
+  "replay_iterations": 1103,
+  "source_environment": {
+    "torch": "2.12.0.dev20260408+cu128",
+    "torchvision": "0.27.0.dev20260407+cu128",
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "seeds": [
+      11,
+      22,
+      33,
+      44,
+      55
+    ],
+    "batch_size": 32,
+    "max_iter": 3000
+  },
+  "python": "3.12.12",
+  "torch": "2.12.0.dev20260408+cu128",
+  "torchvision": "0.27.0.dev20260407+cu128",
+  "sklearn": "1.8.0",
+  "numpy": "2.5.5",
+  "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+  "code_sha256": {
+    "04.reproduce_resnet18_baseline.py": "68c57fdcc38dca42fbaf8fc0079948bdc56dd0614657ce9500eec7e8452c823d",
+    "image_features.py": "f8798784c722964791eabfb26f7c8b3d632b3cc6ab2d905b1a0601b254606ebc",
+    "evaluation_metrics.py": "c940cfb051bc4ccec420543a3eff5c51175af64bee80b8fa20a3124e98a21cbd",
+    "cifar10_data.py": "7f804becaf528d3faf49b358a00fe084639b37070956c82a560ff15ed1bb01d6"
+  }
+}

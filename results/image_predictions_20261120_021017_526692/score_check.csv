@@ -1,0 +1,17 @@
+domain,metric,original,exported,difference,matches,arch,seed,policy,budget
+clean,acc,0.807625,0.807625,0.0,True,resnet18,11,Random,20
+clean,f1,0.8076449505727532,0.8076449505727532,0.0,True,resnet18,11,Random,20
+noise,acc,0.187125,0.187125,0.0,True,resnet18,11,Random,20
+noise,f1,0.1230152734654897,0.12301527346548978,8.326672684688674e-17,True,resnet18,11,Random,20
+clean,acc,0.83975,0.83975,0.0,True,resnet18,11,Entropy,20
+clean,f1,0.8394949788291056,0.8394949788291056,0.0,True,resnet18,11,Entropy,20
+noise,acc,0.148625,0.148625,0.0,True,resnet18,11,Entropy,20
+noise,f1,0.0898446798254364,0.08984467982543647,6.938893903907228e-17,True,resnet18,11,Entropy,20
+clean,acc,0.84825,0.84825,0.0,True,mobilenet_v3_small,11,Random,20
+clean,f1,0.8481567704827684,0.8481567704827684,0.0,True,mobilenet_v3_small,11,Random,20
+noise,acc,0.2795,0.2795,0.0,True,mobilenet_v3_small,11,Random,20
+noise,f1,0.2323101668840032,0.23231016688400327,8.326672684688674e-17,True,mobilenet_v3_small,11,Random,20
+clean,acc,0.8745,0.8745,0.0,True,mobilenet_v3_small,11,Entropy,20
+clean,f1,0.8743729069968853,0.8743729069968853,0.0,True,mobilenet_v3_small,11,Entropy,20
+noise,acc,0.30675,0.30675,0.0,True,mobilenet_v3_small,11,Entropy,20
+noise,f1,0.266608476628014,0.26660847662801407,5.551115123125783e-17,True,mobilenet_v3_small,11,Entropy,20
