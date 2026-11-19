@@ -1,0 +1,3 @@
+model,labels,percent,seed,domain,accuracy,macro_f1
+resnet18,2000,5,11,clean,0.7865,0.7868324907326282
+resnet18,2000,5,11,noisy,0.220125,0.14671968958931925

@@ -1,0 +1,148 @@
+
+# ==================================================
+# Python cache and compiled files
+# ==================================================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ==================================================
+# Python environments
+# ==================================================
+.venv/
+venv/
+env/
+ENV/
+conda-env/
+.python-version
+pip-wheel-metadata/
+
+# ==================================================
+# IDE and editor settings
+# ==================================================
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# ==================================================
+# Raw datasets and large intermediate files
+# ==================================================
+baseline/data/*
+!baseline/data/.gitkeep
+baseline/cache/*
+
+# Satellite imagery and geospatial data
+*.tif
+*.tiff
+*.jp2
+*.img
+*.vrt
+*.shp
+*.shx
+*.dbf
+*.prj
+*.gpkg
+
+# HDF5 and scientific data
+*.h5
+*.hdf
+*.hdf5
+*.nc
+*.zarr/
+*.npy
+*.npz
+*.parquet
+*.feather
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# ==================================================
+# Trained models and checkpoints
+# ==================================================
+models/*
+!models/.gitkeep
+
+*.joblib
+*.pkl
+*.pickle
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.pb
+
+# ==================================================
+# Experimental and temporary outputs
+# ==================================================
+results/runs/*
+!results/runs/.gitkeep
+
+# Temporary folders
+tmp/
+temp/
+cache/
+.cache/
+
+# Logs
+*.log
+logs/
+lightning_logs/
+wandb/
+mlruns/
+tensorboard/
+events.out.tfevents.*
+
+# ==================================================
+# Jupyter notebook checkpoints
+# ==================================================
+.ipynb_checkpoints/
+
+# ==================================================
+# Local settings and secrets
+# ==================================================
+.env
+.env.*
+!.env.example
+*.local
+
+# ==================================================
+# OS-generated files
+# ==================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ==================================================
+# Research outputs to keep in Git
+# ==================================================
+!README.md
+!requirements.txt
+!assets/
+!assets/**
+!reports/
+!reports/**
+!results/*.csv
+!results/*.json
+!results/*.png
+!results/*.svg
+!results/*.md
