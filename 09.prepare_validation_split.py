@@ -1,3 +1,4 @@
+from figure_assets import split_chart
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import hashlib
@@ -85,6 +86,7 @@ def main():
 
     train = CIFAR10(root=str(PROJECT / "data"), train=True, download=False)
     prepare_split(train.targets, train.classes, OUTPUT)
+    split_chart(__file__, OUTPUT)
 
 
 if __name__ == "__main__":

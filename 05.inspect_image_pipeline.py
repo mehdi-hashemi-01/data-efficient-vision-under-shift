@@ -1,3 +1,4 @@
+from figure_assets import copy_figures
 from datetime import datetime
 
 import numpy as np
@@ -113,6 +114,7 @@ def run():
     print(pd.Series(summary).to_string())
     if not passed:
         raise RuntimeError("Pipeline check failed. Inspect the nonzero difference columns in per_image.csv.")
+    copy_figures(__file__, folder)
     print("Saved:", folder / "clean_vs_noisy.png")
 
 

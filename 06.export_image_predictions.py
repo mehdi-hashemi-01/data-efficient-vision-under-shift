@@ -1,3 +1,4 @@
+from figure_assets import transitions_chart
 import json
 from datetime import datetime
 
@@ -101,6 +102,7 @@ def run():
                 checks.append(check)
                 pd.concat(checks, ignore_index=True).to_csv(folder / "score_check.csv", index=False)
                 print("Score check:", "PASS" if check.matches.all() else "MISMATCH", flush=True)
+    transitions_chart(__file__, folder)
     print("Saved:", output)
 
 

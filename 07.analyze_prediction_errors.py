@@ -1,3 +1,4 @@
+from figure_assets import copy_figures
 from datetime import datetime
 from pathlib import Path
 
@@ -90,6 +91,7 @@ def run():
                             largest_f1_drop_class=scores.iloc[0]["class"]))
         print(title, "| largest F1 drop:", scores.iloc[0]["class"])
     pd.DataFrame(summary).to_csv(output / "summary.csv", index=False)
+    copy_figures(__file__, output)
     print("Saved in:", output)
 
 

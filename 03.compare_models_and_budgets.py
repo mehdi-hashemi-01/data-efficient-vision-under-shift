@@ -1,3 +1,4 @@
+from figure_assets import budget_chart
 import json
 import platform
 import warnings
@@ -145,6 +146,7 @@ def run():
                     temporary = folder / "metrics.tmp"
                     pd.DataFrame(rows).to_csv(temporary, index=False)
                     temporary.replace(folder / "metrics.csv")
+    budget_chart(__file__, folder)
     print("Finished:", folder / "metrics.csv")
 
 

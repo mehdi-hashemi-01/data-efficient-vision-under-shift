@@ -1,3 +1,4 @@
+from figure_assets import validation_chart
 import hashlib
 import json
 import platform
@@ -157,6 +158,7 @@ def main():
     )
     summary.to_csv(folder / "paired_summary.csv")
     print(summary.round(3))
+    validation_chart(__file__, folder)
     print("Finished:", folder, flush=True)
 
 

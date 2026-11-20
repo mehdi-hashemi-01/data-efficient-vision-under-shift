@@ -1,3 +1,4 @@
+from figure_assets import baseline_chart
 from datetime import datetime
 import numpy as np
 import pandas as pd
@@ -43,6 +44,7 @@ def run():
     results = pd.DataFrame(rows)
     results.to_csv(folder / "baseline_scores.csv", index=False)
     np.save(folder / "selected_train_ids.npy", selected)
+    baseline_chart(__file__, folder)
     print(results.to_string(index=False))
     print("Saved in:", folder)
 

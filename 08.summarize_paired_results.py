@@ -1,3 +1,4 @@
+from figure_assets import copy_figures
 from datetime import datetime
 from pathlib import Path
 
@@ -76,6 +77,7 @@ def run():
     summary.to_csv(folder / "paired_summary.csv", index=False)
     plot_differences(pairs, folder / "paired_differences.png")
     print(summary.round(3).to_string(index=False))
+    copy_figures(__file__, folder)
     print("Saved in:", folder)
 
 

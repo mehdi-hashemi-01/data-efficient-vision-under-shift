@@ -1,3 +1,4 @@
+from figure_assets import copy_examples
 from PIL import Image, ImageDraw
 from cifar10_data import PROJECT, load_data
 
@@ -18,6 +19,7 @@ def show_examples():
     path = PROJECT / "cifar10_examples.png"
     sheet.save(path)
     print("Image sheet:", path)
+    copy_examples(__file__, path)
     sheet.show()
 
 

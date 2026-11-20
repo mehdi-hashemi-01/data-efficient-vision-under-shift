@@ -1,10 +1,31 @@
+<div align="center">
+
 # Data-Efficient Vision Under Shift
+
+**Active learning with frozen image encoders on CIFAR-10**
+
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-CUDA-EE4C2C?logo=pytorch&logoColor=white)
+![Dataset](https://img.shields.io/badge/Dataset-CIFAR--10-087E83)
+
+[Results](#validation-results) · [Dataset](#dataset-and-label-budgets) · [Error analysis](#class-level-error-audit) · [Run in PyCharm](#reproduce-in-pycharm) · [Figures](#figure-gallery)
+
+
+![Validation macro-F1 at 20% total labels, averaged over five acquisition seeds](assets/10.run_validation_baselines/validation_baselines_20261120_024839_285519/validation_macro_f1.png)
+
+*20% label budget · 7,600 training labels · 400 validation images · five acquisition seeds*
+
+</div>
+
+## Overview
 
 Does labeling the images a classifier finds most uncertain improve recognition when the same images are corrupted by noise? This project compares entropy sampling with random sampling on eight CIFAR-10 classes. Both methods use frozen ImageNet-1K V1 features and a logistic regression head (C = 1). Only the choice of training examples changes within each paired comparison.
 
 At a 20% total label budget, entropy sampling improved clean validation macro-F1 by 2.78 percentage points for ResNet18 and 1.88 for MobileNetV3-Small. Under Gaussian noise the corresponding differences were −0.09 and +1.26 points. The results below include the variation across training seeds.
 
 ## Dataset and label budgets
+![One CIFAR-10 training image from each class](assets/01.explore_cifar10/recorded/cifar10_examples.png)
+
 
 CIFAR-10 contains 60,000 RGB images of 32 × 32 pixels. The original split contains 50,000 training images and 10,000 test images. This project defines an eight-class downstream task using the original split.
 
@@ -103,6 +124,9 @@ Run `pipeline_20261120_015510_030291` checked all 8,000 unique known-class test 
 | Equivalent mean change on the 0–255 scale | 23.23 |
 | Channel values outside [0, 1] before clipping | 1,545,225 / 24,576,000 (6.29%) |
 
+
+![One image per known class before and after the corruption and preprocessing steps](assets/05.inspect_image_pipeline/pipeline_20261120_015510_030291/clean_vs_noisy.png)
+
 The preview pairs clean and noisy views before and after preprocessing for one image per class. These checks verify the implemented perturbation. The next two tables trace the drop to individual predictions and classes.
 
 ### Paired image predictions
@@ -129,6 +153,9 @@ Run `prediction_errors_20261120_022343_139274` covers seed 11 at the 20% budget.
 | MobileNetV3-Small | Random | 0.9723 | 0.0768 | 40 | Frog (530) |
 | MobileNetV3-Small | Entropy | 0.9733 | 0.1043 | 55 | Frog (501) |
 
+
+![Paired confusion matrices for ResNet18 with entropy sampling](assets/07.analyze_prediction_errors/prediction_errors_20261120_022343_139274/resnet18_Entropy_11_20/confusion_matrices.png)
+
 For ResNet18 with entropy sampling, automobile contributed 11.37 percentage points to the total 74.97-point macro-F1 drop (class F1 drop divided by eight). These class-level counts are specific to one seed and one noise level.
 
 ### Model and budget comparison
@@ -143,6 +170,9 @@ Values at 20% labels are means ± sample standard deviations across seeds 11, 22
 | ResNet18 | Entropy | 0.8415 ± 0.0031 | 0.1073 ± 0.0106 | 1.3771 ± 0.0369 | 0.5176 ± 0.0150 |
 | MobileNetV3-Small | Random | 0.8539 ± 0.0048 | 0.2486 ± 0.0152 | 1.0404 ± 0.0341 | 0.5686 ± 0.0266 |
 | MobileNetV3-Small | Entropy | 0.8746 ± 0.0016 | 0.2679 ± 0.0135 | 1.0182 ± 0.0251 | 0.5723 ± 0.0076 |
+
+
+![Clean and noisy test macro-F1 across label budgets](assets/03.compare_models_and_budgets/comparison_20261119_225145_293414/budget_curves.png)
 
 #### Effect of entropy selection
 
@@ -173,9 +203,25 @@ For the comparison script the noisy domain is named `noise`; the first baseline 
 
 </details>
 
+## Figure gallery
+
+Each experiment writes its figures to `assets/<script name>/<run ID>/`. The folder name matches the Python filename without its `.py` extension. Each timestamped run keeps its own figures. Script 09 reuses the fixed split name when verifying the same split. The gallery links to the runs reported here.
+
+| Script | Recorded figure |
+|---|---|
+| `01.explore_cifar10.py` | [CIFAR-10 examples](assets/01.explore_cifar10/recorded/cifar10_examples.png) |
+| `02.run_first_baseline.py` | [Accuracy and macro-F1](assets/02.run_first_baseline/baseline_20261119_220732_930634/baseline.png) |
+| `03.compare_models_and_budgets.py` | [Label-budget curves](assets/03.compare_models_and_budgets/comparison_20261119_225145_293414/budget_curves.png) |
+| `05.inspect_image_pipeline.py` | [Clean and noisy image pairs](assets/05.inspect_image_pipeline/pipeline_20261120_015510_030291/clean_vs_noisy.png) |
+| `06.export_image_predictions.py` | [Correctness transitions](assets/06.export_image_predictions/image_predictions_20261120_021017_526692/transitions.png) |
+| `07.analyze_prediction_errors.py` | [Four pairs of confusion matrices](assets/07.analyze_prediction_errors/prediction_errors_20261120_022343_139274) |
+| `08.summarize_paired_results.py` | [Paired seed differences](assets/08.summarize_paired_results/paired_results_20261120_022844_500509/paired_differences.png) |
+| `09.prepare_validation_split.py` | [Validation class counts](assets/09.prepare_validation_split/validation_split_v1/validation_classes.png) |
+| `10.run_validation_baselines.py` | [Clean and noisy validation macro-F1](assets/10.run_validation_baselines/validation_baselines_20261120_024839_285519/validation_macro_f1.png) |
+
 ## Reproduce in PyCharm
 
-Open the repository folder in PyCharm and choose a Python interpreter with CUDA-enabled PyTorch and compatible torchvision. The remaining packages are listed in [requirements.txt](requirements.txt). The recorded comparison ran on an NVIDIA GeForce RTX 5070 Laptop GPU with CUDA 12.8. Dataset and pretrained-weight downloads require internet access on first use.
+Open the repository folder in PyCharm and choose a Python interpreter with CUDA-enabled PyTorch and compatible torchvision. The scripts also use NumPy, pandas, SciPy, scikit-learn, Pillow and Matplotlib. The recorded comparison ran on an NVIDIA GeForce RTX 5070 Laptop GPU with CUDA 12.8. Dataset and pretrained-weight downloads require internet access on first use.
 
 Right-click the desired file in the Project panel and choose **Run**. Experiment settings are ordinary Python variables near the top of each experiment file.
 
@@ -193,6 +239,8 @@ Right-click the desired file in the Project panel and choose **Run**. Experiment
 | 09.prepare_validation_split.py | Create or verify the shared validation and acquisition IDs | results/validation_split_v1/ |
 | 10.run_validation_baselines.py | Fit Random, Entropy and the full-pool references on the split from script 09 | Validation metrics, paired summaries, predictions, selected IDs and run details |
 
+For the historical replay and analysis scripts (04, 06, 07 and 08), set the source run at the top of the script to the matching archived output in `results/`. Script 04 verifies the original selection hash and needs the matching historical run.
+
 For the validation experiment, use script 01 or 02 to download CIFAR-10 into `data/` if needed. Run 09 once to save the split, then run 10. Open `paired_summary.csv` in the new `results/validation_baselines_<timestamp>/` folder. Its mean, standard deviation and range columns use percentage points. The original per-seed macro-F1 values in `paired_by_seed.csv` use the 0–1 scale.
 
 The validation run used Python 3.12.12, PyTorch 2.12.0.dev20260408+cu128, torchvision 0.27.0.dev20260407+cu128, NumPy 2.5.5 and scikit-learn 1.8.0 on Windows 11. Script 10 uses the GPU for feature extraction and the CPU for the logistic regression fits.
@@ -207,7 +255,8 @@ The validation run used Python 3.12.12, PyTorch 2.12.0.dev20260408+cu128, torchv
 | image_features.py | Encoder loading, feature extraction and deterministic image corruption |
 | evaluation_metrics.py | Classification, calibration and OOD metrics |
 | results/ | Generated run folders |
-| README_FA.md | Persian guide to setup, scripts and interpretation |
+| assets/ | Figures grouped by script and run |
+| figure_assets.py | Plotting and image export functions shared by the numbered scripts |
 
 ## Interpretation and limitations
 
