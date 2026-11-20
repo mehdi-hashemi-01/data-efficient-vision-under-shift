@@ -1,0 +1,56 @@
+{
+  "protocol": "1.0",
+  "split": {
+    "protocol_version": "1.0",
+    "dataset": "CIFAR-10",
+    "source_split": "train",
+    "id_type": "zero-based row index in the original training split",
+    "seed": 20261120,
+    "generator": "PCG64",
+    "validation_size": 400,
+    "pool_size": 39600,
+    "validation_class_counts": {
+      "airplane": 54,
+      "automobile": 52,
+      "bird": 51,
+      "cat": 47,
+      "deer": 49,
+      "dog": 41,
+      "frog": 62,
+      "horse": 44
+    },
+    "sha256": {
+      "validation_ids.npy": "5869d01268ff20fea761a03fd500ac7ebd379c3e4e202b4234d4eaa392a1a0cf",
+      "pool_ids.npy": "00375fbf4b1f94527dca386091a90dff7f35db7ac7896e5816a5a710ef34b15f"
+    }
+  },
+  "seeds": [
+    11,
+    22,
+    33,
+    44,
+    55
+  ],
+  "train_counts": {
+    "5": 1600,
+    "10": 3600,
+    "20": 7600,
+    "100": 39600
+  },
+  "models": [
+    "resnet18",
+    "mobilenet_v3_small"
+  ],
+  "batch_size": 32,
+  "python": "3.12.12",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "torch": "2.12.0.dev20260408+cu128",
+  "torchvision": "0.27.0.dev20260407+cu128",
+  "numpy": "2.5.5",
+  "sklearn": "1.8.0",
+  "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+  "feature_seconds": {
+    "resnet18": 83.16409550001845,
+    "mobilenet_v3_small": 57.537484299973585
+  }
+}

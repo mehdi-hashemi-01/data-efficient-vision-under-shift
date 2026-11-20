@@ -1,0 +1,24 @@
+{
+  "protocol_version": "1.0",
+  "dataset": "CIFAR-10",
+  "source_split": "train",
+  "id_type": "zero-based row index in the original training split",
+  "seed": 20261120,
+  "generator": "PCG64",
+  "validation_size": 400,
+  "pool_size": 39600,
+  "validation_class_counts": {
+    "airplane": 54,
+    "automobile": 52,
+    "bird": 51,
+    "cat": 47,
+    "deer": 49,
+    "dog": 41,
+    "frog": 62,
+    "horse": 44
+  },
+  "sha256": {
+    "validation_ids.npy": "5869d01268ff20fea761a03fd500ac7ebd379c3e4e202b4234d4eaa392a1a0cf",
+    "pool_ids.npy": "00375fbf4b1f94527dca386091a90dff7f35db7ac7896e5816a5a710ef34b15f"
+  }
+}

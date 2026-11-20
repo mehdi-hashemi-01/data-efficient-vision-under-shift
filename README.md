@@ -1,28 +1,8 @@
-<div align="center">
-
 # Data-Efficient Vision Under Shift
 
-**How far can 2,000 labels take a pretrained image classifier when its inputs change?**
+Does labeling the images a classifier finds most uncertain improve recognition when the same images are corrupted by noise? This project compares entropy sampling with random sampling on eight CIFAR-10 classes. Both methods use frozen ImageNet-1K V1 features and a logistic regression head (C = 1). Only the choice of training examples changes within each paired comparison.
 
-![Dataset](https://img.shields.io/badge/Dataset-CIFAR--10-176B69)
-![Framework](https://img.shields.io/badge/Framework-PyTorch-EE4C2C)
-![Stage](https://img.shields.io/badge/Stage-Five--seed_benchmark-475569)
-
-[Overview](#overview) · [Dataset](#dataset-and-label-budgets) · [First baseline](#first-baseline) · [Results](#benchmark-results) · [Reproduce](#reproduce-in-pycharm) · [Roadmap](#research-roadmap)
-
-</div>
-
-## Overview
-
-Imagine a pool of 40,000 images and a budget to label only 2,000. A frozen image encoder can already describe each image with a vector of features. How accurately can a classifier learn eight categories from those vectors? If a clean image of a cat becomes noisy, does the prediction change? And when the input is a ship, can the classifier signal that none of its eight answers fits?
-
-This repository studies these questions with frozen **ResNet18** and **MobileNetV3-Small** encoders. The first experiment measures how the same classifier performs on clean and noisy versions of the same images. The second compares which images to label next and evaluates confidence, unfamiliar-class detection and inference cost.
-
-| Stage | Research question | Evidence available |
-|---|---|---|
-| First baseline | How well does ResNet18 transfer with 5% of the training labels? | Measured on 8,000 paired test images. |
-| Model and budget comparison | At equal label budgets, does selecting uncertain images improve on random sampling? | Completed across four budgets and five seeds. |
-| Representation and selection controls | How much do pretraining, sample diversity and prediction stability each contribute? | Planned experiments. |
+At a 20% total label budget, entropy sampling improved clean validation macro-F1 by 2.78 percentage points for ResNet18 and 1.88 for MobileNetV3-Small. Under Gaussian noise the corresponding differences were −0.09 and +1.26 points. The results below include the variation across training seeds.
 
 ## Dataset and label budgets
 
@@ -39,18 +19,57 @@ The 10,000 training photographs of ships and trucks are excluded. The noisy test
 
 | Label budget | 5% | 10% | 20% | 100% |
 |---|---:|---:|---:|---:|
-| Known training images with revealed labels | 2,000 | 4,000 | 8,000 | 40,000 |
+| Total revealed labels | 2,000 | 4,000 | 8,000 | 40,000 |
+| Training labels in the exploratory benchmark | 2,000 | 4,000 | 8,000 | 40,000 |
+| Training labels under protocol v1 | 1,600 | 3,600 | 7,600 | 39,600 |
+| Validation labels under protocol v1 | 400 | 400 | 400 | 400 |
 
 Dataset source and class definitions: [CIFAR-10, University of Toronto](https://www.cs.toronto.edu/~kriz/cifar.html).
 
-## First baseline
+## Validation results
+
+Run `validation_baselines_20261120_024839_285519` used the same 400 validation images for all fits. Each seed starts from a shared set of 1,600 labels. Random extends a fixed permutation. Entropy ranks the remaining clean pool images using the previous head's predictive entropy. Both methods acquire 2,000 additional labels at the 10% round and another 4,000 at 20%. Each encoder has one full-pool reference fit.
+
+### Macro-F1 at 20% total labels
+
+| Encoder | Selection | Clean validation | Noisy validation | Clean ECE | Noisy ECE |
+|---|---|---:|---:|---:|---:|
+| ResNet18 | Random | 0.8195 | 0.1067 | 0.1126 | 0.6664 |
+| ResNet18 | Entropy | 0.8474 | 0.1058 | 0.0865 | 0.6300 |
+| MobileNetV3-Small | Random | 0.8591 | 0.2514 | 0.0554 | 0.3968 |
+| MobileNetV3-Small | Entropy | 0.8779 | 0.2641 | 0.0511 | 0.3901 |
+
+Entries are five-seed means. Lower ECE indicates better agreement between confidence and accuracy. MobileNetV3-Small with Entropy had the highest noisy macro-F1 of the four configurations, but even this classifier averaged only 30.75% accuracy on noisy images, versus 88.30% on their clean counterparts.
+
+### Paired effect of entropy sampling
+
+Each difference is 100 × (Entropy macro-F1 − Random macro-F1) for the same encoder, budget, seed and validation images. The table gives the mean ± sample standard deviation in percentage points. Wins count seeds with a positive difference.
+
+| Encoder | Total labels | Clean difference | Clean wins | Noisy difference | Noisy wins |
+|---|---:|---:|---:|---:|---:|
+| ResNet18 | 10% | +1.94 ± 2.31 | 4/5 | +1.44 ± 4.72 | 3/5 |
+| ResNet18 | 20% | +2.78 ± 2.62 | 4/5 | −0.09 ± 5.55 | 2/5 |
+| MobileNetV3-Small | 10% | +1.71 ± 1.26 | 5/5 | +0.76 ± 4.42 | 2/5 |
+| MobileNetV3-Small | 20% | +1.88 ± 0.81 | 5/5 | +1.26 ± 2.05 | 3/5 |
+
+For ResNet18 at 20%, the noisy differences ranged from −8.15 to +6.86 points. The near-zero mean hides substantial seed variation. MobileNetV3-Small gained on clean images in every paired comparison, while its noisy 20% differences ranged from −0.93 to +3.58 points. More clean labels alone also left a large gap. With all 39,600 available training labels, clean/noisy macro-F1 was 0.8604/0.1326 for ResNet18 and 0.8982/0.2539 for MobileNetV3-Small.
+
+The archive contains 52 fits and 104 clean/noisy metric rows. Accuracy, macro-F1 and 10-bin ECE were recomputed from the prediction files. All 40 paired differences and eight summaries matched the CSV exports. Every saved training subset was disjoint from the validation IDs. All fits used L-BFGS without a recorded convergence warning.
+
+### Fixed split
+
+Script 09 implements the [evaluation protocol](evaluation_protocol.md). The saved split in `results/validation_split_v1/` contains 400 validation IDs and 39,600 acquisition-pool IDs. The arrays are disjoint and together match the 40,000 original CIFAR-10 training IDs from the 100% ResNet18 baseline. Replaying PCG64 with seed 20261120 on those sorted baseline IDs reproduced both arrays exactly. Both file hashes matched `split_summary.json`.
+
+The recorded validation counts are airplane 54, automobile 52, bird 51, cat 47, deer 49, dog 41, frog 62 and horse 44. Under this protocol the 400 validation labels count toward every budget. At 20%, the classifier therefore receives 7,600 training labels. Earlier benchmark tables use the original budget convention.
+
+## Exploratory test benchmark
+
+### First baseline
 
 1. Randomly select 2,000 known-class training images using seed 11.
 2. Load the ImageNet-1K pretrained ResNet18, remove its final classification layer, and apply the preprocessing supplied with the weights.
 3. Extract features on the GPU with the encoder frozen. Fit a logistic regression classifier on the CPU using the selected labels.
 4. Measure accuracy and macro-F1 twice, first on clean test images and then on their noisy counterparts. Save the scores and selected training IDs.
-
-## Benchmark results
 
 ### First run · ResNet18 · 2,000 labels · seed 11
 
@@ -84,7 +103,7 @@ Run `pipeline_20261120_015510_030291` checked all 8,000 unique known-class test 
 | Equivalent mean change on the 0–255 scale | 23.23 |
 | Channel values outside [0, 1] before clipping | 1,545,225 / 24,576,000 (6.29%) |
 
-The preview pairs clean and noisy views before and after preprocessing for one image per class. These checks verify the implemented perturbation. Attributing the observed macro-F1 drop to specific classes requires paired per-image predictions.
+The preview pairs clean and noisy views before and after preprocessing for one image per class. These checks verify the implemented perturbation. The next two tables trace the drop to individual predictions and classes.
 
 ### Paired image predictions
 
@@ -166,9 +185,17 @@ Right-click the desired file in the Project panel and choose **Run**. Experiment
 | 01.explore_cifar10.py | Inspect the dataset and display one example per class | cifar10_examples.png and class counts |
 | 02.run_first_baseline.py | Run the first clean/noisy comparison | results/baseline_&lt;timestamp&gt;/baseline_scores.csv and selected_train_ids.npy |
 | 03.compare_models_and_budgets.py | Compare two encoders, two selection policies and four budgets | results/comparison_&lt;timestamp&gt;/metrics.csv, training-ID files and environment.json |
+| 04.reproduce_resnet18_baseline.py | Replay the saved 20% ResNet18 selection | Metric-by-metric comparison |
+| 05.inspect_image_pipeline.py | Check paired preprocessing and noise | Image previews and pixel audit |
+| 06.export_image_predictions.py | Export paired test predictions at seed 11 and 20% labels | Per-image labels, predictions and probabilities |
+| 07.analyze_prediction_errors.py | Identify class confusions under noise | Confusion matrices and class-level error summaries |
 | 08.summarize_paired_results.py | Compare Entropy and Random within each seed using the saved comparison CSV | paired_by_seed.csv, paired_summary.csv and paired_differences.png |
+| 09.prepare_validation_split.py | Create or verify the shared validation and acquisition IDs | results/validation_split_v1/ |
+| 10.run_validation_baselines.py | Fit Random, Entropy and the full-pool references on the split from script 09 | Validation metrics, paired summaries, predictions, selected IDs and run details |
 
-Script 02 loads the dataset itself, so it can run directly. For a controlled second run, change only `LABEL_PERCENT` from 5 to 10 while keeping `MODEL_NAME` and `SEED` fixed. Output folders are timestamped.
+For the validation experiment, use script 01 or 02 to download CIFAR-10 into `data/` if needed. Run 09 once to save the split, then run 10. Open `paired_summary.csv` in the new `results/validation_baselines_<timestamp>/` folder. Its mean, standard deviation and range columns use percentage points. The original per-seed macro-F1 values in `paired_by_seed.csv` use the 0–1 scale.
+
+The validation run used Python 3.12.12, PyTorch 2.12.0.dev20260408+cu128, torchvision 0.27.0.dev20260407+cu128, NumPy 2.5.5 and scikit-learn 1.8.0 on Windows 11. Script 10 uses the GPU for feature extraction and the CPU for the logistic regression fits.
 
 ### Repository layout
 
@@ -182,24 +209,11 @@ Script 02 loads the dataset itself, so it can run directly. For a controlled sec
 | results/ | Generated run folders |
 | README_FA.md | Persian guide to setup, scripts and interpretation |
 
-## Limitations and error analysis
+## Interpretation and limitations
 
-- **Scope of shift.** A single Gaussian noise level measures sensitivity to one corruption. Performance on blur, compression or naturally shifted photographs remains open.
-- **Meaning of unknown.** Ships and trucks are held out of the downstream task. Related categories may have been seen during ImageNet pretraining.
-- **Seed variation.** All seeds share the same test images and noisy views. Their variation describes sensitivity to the training-label selection on this split.
-- **Model selection.** The scripts score the official test partition. Use a training-derived validation split for later choices about augmentations, confidence thresholds and selection rules.
-- **Next error audit.** Save image ID, true class, predicted class and confidence for both views. Count images that change from correct to incorrect and from incorrect to correct. This explains what the aggregate performance drop hides. The current baseline saves aggregate scores and selected training IDs.
+The 400 validation images come from the training partition. Scripts 02–08 examined the official test partition earlier in development. The two experiments differ in evaluation images and classifier training budgets, so differences between their estimates cannot be attributed to a single change. For example, at 20% the mean noisy ResNet18 difference was −1.55 points in the exploratory test run and −0.09 points in validation.
 
-## Research roadmap
-
-- [x] Record the two rows from the first baseline and their run identifier.
-- [x] Compare random and entropy selection at 10% and 20% using paired seed-level differences.
-- [x] Record paired confusion matrices, per-class F1 changes and error example IDs for seed 11 at 20% labels.
-- [ ] Compare frozen supervised features against a matched self-supervised encoder under the same annotation budget.
-- [ ] Test whether agreement across two mild image transformations helps select useful uncertain examples. Include diversity-only and uncertainty-plus-diversity controls such as BADGE.
-- [ ] Evaluate additional corruptions and an external OOD dataset.
-
-<!-- For each new stage, add the question, the one change being tested, the fixed comparison conditions, the run artifact, measured results, and one limitation. Link figures once their files are committed. -->
+All five acquisition seeds share the same images and the same noise realization. Their spread measures sensitivity to training selection. Results cover one Gaussian noise level and two supervised pretrained encoders. Blur, natural distribution shifts and external datasets require separate evaluation. The OOD experiment holds ship and truck out of the downstream classifier; ImageNet pretraining may include related categories.
 
 ## References
 
